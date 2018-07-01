@@ -10489,7 +10489,7 @@ public abstract class GameCharacter implements Serializable, XMLSaving {
 	/**
 	 * @param fluid The FluidType to be ingested.
 	 * @param orificeIngestedThrough Orifice through which the fluid is being ingested.
-	 * @param addictive Is this fluid addictive or not.
+	 * @param modifiers The modifiers that apply to the fluid in question.
 	 * @return A <b>formatted paragraph</b> description of addiction increasing/satisfied, or an empty String if no addictive effects occur.
 	 */
 	public String ingestFluid(GameCharacter charactersFluid, FluidType fluid, SexAreaOrifice orificeIngestedThrough, int millilitres, List<FluidModifier> modifiers) {
@@ -10497,7 +10497,7 @@ public abstract class GameCharacter implements Serializable, XMLSaving {
 		
 		//TODO convert all instances of this method to just (GameCharacter charactersFluid, BodyPartInterface fluid, int millilitres)
 		boolean found = false;
-	
+		List<ItemEffect> tfs=null;
 		if(fluid.getBaseType()==FluidTypeBase.CUM) {
 			for(FluidStored fluidStored : fluidsStoredMap.get(orificeIngestedThrough)) {
 				if(fluidStored.getFluid().equals(charactersFluid.getCum())) {
@@ -10509,7 +10509,8 @@ public abstract class GameCharacter implements Serializable, XMLSaving {
 			if(!found) {
 				this.addFluidStored(orificeIngestedThrough, new FluidStored(charactersFluid.getId(), charactersFluid.getCum(), millilitres));
 			}
-			
+			tfs=charactersFluid.getCum().getTransformativeEffects();
+
 		} else if(fluid.getBaseType()==FluidTypeBase.MILK) {
 			for(FluidStored fluidStored : fluidsStoredMap.get(orificeIngestedThrough)) {
 				if(fluidStored.getFluid().equals(charactersFluid.getMilk())) {
@@ -10521,7 +10522,8 @@ public abstract class GameCharacter implements Serializable, XMLSaving {
 			if(!found) {
 				this.addFluidStored(orificeIngestedThrough, new FluidStored(charactersFluid.getId(), charactersFluid.getMilk(), millilitres));
 			}
-			
+			tfs=charactersFluid.getMilk().getTransformativeEffects();
+
 		} else if(fluid.getBaseType()==FluidTypeBase.GIRLCUM) {
 			for(FluidStored fluidStored : fluidsStoredMap.get(orificeIngestedThrough)) {
 				if(fluidStored.getFluid().equals(charactersFluid.getGirlcum())) {
@@ -10533,6 +10535,7 @@ public abstract class GameCharacter implements Serializable, XMLSaving {
 			if(!found) {
 				this.addFluidStored(orificeIngestedThrough, new FluidStored(charactersFluid.getId(), charactersFluid.getGirlcum(), millilitres));
 			}
+			tfs=charactersFluid.getGirlcum().getTransformativeEffects();
 		}
 		
 		if((this.getBodyMaterial()==BodyMaterial.SLIME
@@ -10614,7 +10617,11 @@ public abstract class GameCharacter implements Serializable, XMLSaving {
 				}
 			}
 		}
-		
+		if(tfs!=null) {
+			for (ItemEffect ie : tfs) {
+				fluidIngestionSB.append(ie.applyEffect(charactersFluid, this, 60));
+			}
+		}
 		return fluidIngestionSB.toString();
 	}
 	
@@ -11223,6 +11230,10 @@ public abstract class GameCharacter implements Serializable, XMLSaving {
 					if(fs.getFluid().getFluidModifiers().contains(FluidModifier.HALLUCINOGENIC)) {
 						this.addStatusEffect(StatusEffect.PSYCHOACTIVE, 6*60);
 					}
+					//It might make more sense for fluids to transform the character here,
+					//but the text regarding that is lost.
+					//for(ItemEffect ie : fs.getFluid().getTransformativeEffects())
+					//	ie.applyEffects(this,this,60);
 				}
 			}
 		}
