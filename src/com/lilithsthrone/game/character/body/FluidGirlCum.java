@@ -17,6 +17,7 @@ import com.lilithsthrone.game.dialogue.utils.UtilText;
 import com.lilithsthrone.game.inventory.enchanting.ItemEffect;
 import com.lilithsthrone.utils.Util;
 import com.lilithsthrone.utils.XMLSaving;
+import org.w3c.dom.NodeList;
 
 /**
  * @since 0.1.83
@@ -51,7 +52,10 @@ public class FluidGirlCum implements FluidInterface, Serializable, XMLSaving {
 		for(FluidModifier fm : FluidModifier.values()) {
 			CharacterUtils.addAttribute(doc, cumModifiers, fm.toString(), String.valueOf(this.hasFluidModifier(fm)));
 		}
-		
+		Element fluidTFs=doc.createElement("effects");
+		for(ItemEffect ie : transformativeEffects)
+			ie.saveAsXML(fluidTFs,doc);
+		element.appendChild(fluidTFs);
 		return element;
 	}
 	
@@ -73,7 +77,10 @@ public class FluidGirlCum implements FluidInterface, Serializable, XMLSaving {
 		Element girlcumModifiersElement = (Element)girlcum.getElementsByTagName("girlcumModifiers").item(0);
 		Collection<FluidModifier> girlcumFluidModifiers = fluidGirlcum.fluidModifiers;
 		Body.handleLoadingOfModifiers(FluidModifier.values(), null, girlcumModifiersElement, girlcumFluidModifiers);
-		
+		NodeList fluidTFElements=((Element)parentElement.getElementsByTagName("effects")).getElementsByTagName("effect");
+		for(int i=0;i<fluidTFElements.getLength();i++){
+			fluidGirlcum.transformativeEffects.add(ItemEffect.loadFromXML((Element)fluidTFElements.item(i),doc));
+		}
 		return fluidGirlcum;
 	}
 
